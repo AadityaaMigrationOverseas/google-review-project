@@ -1,0 +1,29 @@
+# systemd unit for a bare-metal/VM deployment at /opt/stellar-portal.
+# Secrets live in /etc/stellar-portal/env (chmod 600, owned by root).
+[Unit]
+Description=Stellar Dental Clinic review portal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=stellar
+Group=stellar
+WorkingDirectory=/opt/stellar-portal
+EnvironmentFile=/etc/stellar-portal/env
+ExecStart=/usr/bin/node server/dist/index.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/stellar-portal
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

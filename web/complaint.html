@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--partial:head-->
+    <title>Report a problem privately · Stellar Dental Clinic</title>
+    <meta name="description" content="Privately tell Stellar Dental Clinic about a problem so we can put it right." />
+    <script type="module" src="/src/pages/complaint.ts"></script>
+  </head>
+  <body>
+    <!--partial:header-->
+    <main id="main" class="shell">
+      <section class="card" aria-labelledby="page-title">
+        <div id="complaint-view">
+          <h1 id="page-title">Report a problem privately</h1>
+          <p class="lede">
+            We're sorry something wasn't right. Your message goes directly and confidentially to Dr. Dhruvi Shah, who
+            will personally follow up with you.
+          </p>
+
+          <form id="complaint-form" class="form" novalidate>
+            <div class="form-row form-row--2">
+              <div class="field">
+                <label class="field__label" for="first-name">First name</label>
+                <input
+                  id="first-name"
+                  name="firstName"
+                  class="input"
+                  type="text"
+                  autocomplete="given-name"
+                  maxlength="60"
+                  aria-describedby="firstName-error"
+                />
+                <p class="field__error" id="firstName-error" data-error-for="firstName"></p>
+              </div>
+              <div class="field">
+                <label class="field__label" for="last-name">Surname</label>
+                <input
+                  id="last-name"
+                  name="lastName"
+                  class="input"
+                  type="text"
+                  autocomplete="family-name"
+                  maxlength="60"
+                  aria-describedby="lastName-error"
+                />
+                <p class="field__error" id="lastName-error" data-error-for="lastName"></p>
+              </div>
+            </div>
+
+            <div class="form-row form-row--2">
+              <div class="field">
+                <label class="field__label" for="email">Email address</label>
+                <input
+                  id="email"
+                  name="email"
+                  class="input"
+                  type="email"
+                  inputmode="email"
+                  autocomplete="email"
+                  maxlength="254"
+                  aria-describedby="email-error"
+                />
+                <p class="field__error" id="email-error" data-error-for="email"></p>
+              </div>
+              <div class="field">
+                <label class="field__label" for="phone">Phone number</label>
+                <input
+                  id="phone"
+                  name="phone"
+                  class="input"
+                  type="tel"
+                  inputmode="tel"
+                  autocomplete="tel"
+                  maxlength="24"
+                  placeholder="+91 98765 43210"
+                  aria-describedby="phone-error"
+                />
+                <p class="field__error" id="phone-error" data-error-for="phone"></p>
+              </div>
+            </div>
+
+            <!--partial:stars-->
+
+            <div class="field">
+              <label class="field__label" for="details">What happened?</label>
+              <textarea
+                id="details"
+                name="details"
+                class="textarea"
+                rows="6"
+                maxlength="4400"
+                aria-describedby="details-hint details-error"
+              ></textarea>
+              <div class="field__meta">
+                <span id="details-hint">Include the date of your visit and anything that helps us understand.</span>
+                <span class="field__count" id="details-count" aria-live="polite">0 / 4000</span>
+              </div>
+              <p class="field__error" id="details-error" data-error-for="details"></p>
+            </div>
+
+            <div class="hp" aria-hidden="true">
+              <label for="website">Leave this field empty</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="check">
+              <input id="consent" name="consent" type="checkbox" aria-describedby="consent-error" />
+              <label for="consent">
+                I agree that Stellar Dental Clinic may store this complaint and my contact details, and contact me about
+                it, as described in the <a href="/privacy" target="_blank" rel="noopener">privacy notice</a>.
+              </label>
+              <p class="field__error" id="consent-error" data-error-for="consent"></p>
+            </div>
+
+            <div id="form-alert" role="alert" hidden></div>
+
+            <button type="submit" class="btn btn--primary btn--block" id="submit-btn">
+              <span class="btn__spinner" aria-hidden="true"></span>
+              <span class="btn__label">Send privately to the clinic</span>
+            </button>
+            <p class="fine-print">For dental emergencies, please call the clinic directly.</p>
+          </form>
+        </div>
+
+        <section id="success-view" class="success" tabindex="-1" aria-labelledby="success-title" hidden>
+          <svg class="success__icon" viewBox="0 0 76 76" aria-hidden="true">
+            <circle cx="38" cy="38" r="36" />
+            <path d="M24 39.5 33.5 49 53 28" />
+          </svg>
+          <h2 id="success-title">We've received your message</h2>
+          <p class="lede">Thank you for telling us. Dr. Shah will review it and get in touch with you soon.</p>
+          <p>Your reference number</p>
+          <p class="reference" id="reference"></p>
+          <p class="fine-print">Please keep this reference if you contact the clinic about this matter.</p>
+        </section>
+      </section>
+    </main>
+    <!--partial:footer-->
+  </body>
+</html>

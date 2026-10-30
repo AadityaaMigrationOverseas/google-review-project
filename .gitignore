@@ -1,0 +1,24 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Runtime data
+data/
+*.sqlite
+*.sqlite-*
+
+# C++ engine build artefacts and large binaries
+sentiment-engine/build/
+sentiment-engine/third_party/
+sentiment-engine/models/*
+!sentiment-engine/models/README.md
+
+# Playwright
+test-results/
+playwright-report/
+.playwright/

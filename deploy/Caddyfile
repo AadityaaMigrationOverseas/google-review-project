@@ -1,0 +1,10 @@
+# Reverse proxy with automatic HTTPS. Run the app with TRUST_PROXY=loopback.
+reviews.stellardentalclinic.com {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3000
+}
+
+# Optional dedicated short-link domain (set SHORT_LINK_BASE_URL=https://stlr.link and SHORT_LINK_HOST=stlr.link).
+# stlr.link {
+# 	reverse_proxy 127.0.0.1:3000
+# }

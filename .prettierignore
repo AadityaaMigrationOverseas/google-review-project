@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+data
+sentiment-engine/third_party
+sentiment-engine/build
+sentiment-engine/vendor
+test-results
+playwright-report
+package-lock.json

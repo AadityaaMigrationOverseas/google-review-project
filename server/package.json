@@ -1,0 +1,23 @@
+{
+  "name": "@stellar/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../scripts/copy-migrations.mjs",
+    "dev": "tsx watch --conditions=source --env-file-if-exists=../.env src/index.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.5",
+    "@fastify/static": "^10.1.8",
+    "@stellar/shared": "*",
+    "fastify": "^5.12.7",
+    "nodemailer": "^10.3.0",
+    "pino": "^10.1.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.2",
+    "@types/qrcode": "^1.5.6"
+  }
+}

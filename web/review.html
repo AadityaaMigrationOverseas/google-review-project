@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--partial:head-->
+    <title>Share your experience · Stellar Dental Clinic</title>
+    <meta name="description" content="Tell Stellar Dental Clinic and Dr. Dhruvi Shah about your visit." />
+    <script type="module" src="/src/pages/review.ts"></script>
+  </head>
+  <body>
+    <!--partial:header-->
+    <main id="main" class="shell">
+      <div id="copy-toast" class="toast" role="status" aria-live="polite" hidden>
+        <span class="toast__icon" aria-hidden="true">✓</span>
+        <p id="copy-toast-text" class="toast__text">
+          Review copied to clipboard! Opening Google Reviews—simply press Paste (Ctrl+V / Cmd+V) to post.
+        </p>
+      </div>
+
+      <div
+        id="clipboard-modal"
+        class="modal-backdrop"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="clipboard-modal-title"
+        hidden
+      >
+        <div class="modal-card">
+          <h2 id="clipboard-modal-title">Almost there!</h2>
+          <p class="lede">
+            Your browser needs one tap to copy your review to the clipboard before opening Google Reviews.
+          </p>
+          <button id="clipboard-modal-btn" class="btn btn--primary btn--block" type="button">
+            Click here to copy and continue
+          </button>
+        </div>
+      </div>
+
+      <section class="card view-container" aria-labelledby="page-title">
+        <div class="doctor">
+          <div class="doctor__avatar" aria-hidden="true">DS</div>
+          <div>
+            <p class="doctor__name">Dr. Dhruvi Shah</p>
+            <p class="doctor__role">Lead Dentist · Stellar Dental Clinic</p>
+          </div>
+        </div>
+
+        <div id="review-view" class="view-pane">
+          <h1 id="page-title">How was your visit?</h1>
+          <p class="lede">Your feedback helps us care for you better. It takes less than a minute.</p>
+
+          <div id="link-alert" class="alert alert--warning" role="status" hidden>
+            <p>This feedback link is no longer active, but you can still share your experience below.</p>
+          </div>
+
+          <form id="review-form" class="form" novalidate>
+            <!--partial:stars-->
+
+            <div class="field">
+              <div class="field__header">
+                <label class="field__label" for="review-text">
+                  Tell us about your experience <span class="field__req">Required</span>
+                </label>
+                <span id="sentiment-preview-badge" class="preview-badge" aria-live="polite" hidden></span>
+              </div>
+              <textarea
+                id="review-text"
+                name="text"
+                class="textarea"
+                rows="5"
+                maxlength="2400"
+                autocomplete="off"
+                placeholder="Share a few words about your visit (at least 5 characters)…"
+                aria-describedby="text-hint text-error"
+              ></textarea>
+              <div class="field__meta">
+                <span id="text-hint">What went well? What could we do better?</span>
+                <span class="field__count" id="text-count" aria-live="polite">0 / 2000</span>
+              </div>
+              <p class="field__error" id="text-error" data-error-for="text"></p>
+            </div>
+
+            <div class="hp" aria-hidden="true">
+              <label for="website">Leave this field empty</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="check">
+              <input id="consent" name="consent" type="checkbox" checked aria-describedby="consent-error" />
+              <label for="consent">
+                I agree that Stellar Dental Clinic may store my rating and comments to improve its care, as described in
+                the <a href="/privacy" target="_blank" rel="noopener">privacy notice</a>.
+              </label>
+              <p class="field__error" id="consent-error" data-error-for="consent"></p>
+            </div>
+
+            <div id="form-alert" role="alert" hidden></div>
+
+            <button type="submit" class="btn btn--primary btn--block" id="submit-btn" disabled>
+              <span class="btn__spinner" aria-hidden="true"></span>
+              <span class="btn__label">Submit Review</span>
+            </button>
+            <p class="fine-print">Please avoid sharing medical details you would prefer to keep private.</p>
+          </form>
+        </div>
+
+        <section
+          id="escalation-view"
+          class="view-pane escalation"
+          tabindex="-1"
+          aria-labelledby="escalation-title"
+          hidden
+        >
+          <h2 id="escalation-title">We want to make this right</h2>
+          <p id="escalation-header" class="lede escalation__lede">
+            Thank you for your feedback. We take patient satisfaction seriously. Please leave your contact details below
+            so our clinic director/doctor can personally reach out and resolve your concern.
+          </p>
+
+          <details id="review-preview-accordion" class="accordion" open>
+            <summary class="accordion__summary">
+              <span>Your submitted review (locked preview)</span>
+              <span id="escalation-rating" class="your-review__stars"></span>
+            </summary>
+            <div class="accordion__body">
+              <textarea
+                id="escalation-review-text"
+                class="textarea textarea--locked"
+                rows="3"
+                readonly
+                aria-label="Your submitted review text"
+              ></textarea>
+            </div>
+          </details>
+
+          <form id="escalation-form" class="form" novalidate>
+            <div class="field">
+              <label class="field__label" for="full-name"> Full Name <span class="field__req">Required</span> </label>
+              <input
+                id="full-name"
+                name="fullName"
+                class="input"
+                type="text"
+                autocomplete="name"
+                maxlength="120"
+                placeholder="e.g. Priya Patel"
+                aria-describedby="fullName-error"
+              />
+              <p class="field__error" id="fullName-error" data-error-for="fullName"></p>
+            </div>
+
+            <div class="form-row form-row--2">
+              <div class="field">
+                <label class="field__label" for="escalation-phone">
+                  Phone Number <span class="field__req">Required</span>
+                </label>
+                <input
+                  id="escalation-phone"
+                  name="phone"
+                  class="input"
+                  type="tel"
+                  inputmode="tel"
+                  autocomplete="tel"
+                  maxlength="24"
+                  placeholder="+91 98765 43210"
+                  aria-describedby="escalation-phone-error"
+                />
+                <p class="field__error" id="escalation-phone-error" data-error-for="phone"></p>
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="escalation-email">
+                  Email Address <span class="field__req">Required</span>
+                </label>
+                <input
+                  id="escalation-email"
+                  name="email"
+                  class="input"
+                  type="email"
+                  inputmode="email"
+                  autocomplete="email"
+                  maxlength="254"
+                  placeholder="you@example.com"
+                  aria-describedby="escalation-email-error"
+                />
+                <p class="field__error" id="escalation-email-error" data-error-for="email"></p>
+              </div>
+            </div>
+
+            <div class="hp" aria-hidden="true">
+              <label for="escalation-website">Leave this field empty</label>
+              <input id="escalation-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div id="escalation-alert" role="alert" hidden></div>
+
+            <button type="submit" class="btn btn--primary btn--block" id="escalation-submit-btn">
+              <span class="btn__spinner" aria-hidden="true"></span>
+              <span class="btn__label">Send directly to Dr. Shah</span>
+            </button>
+          </form>
+
+          <div class="escalation__footer">
+            <p class="fine-print">
+              Prefer to also share your review publicly?
+              <a
+                id="escalation-google-link"
+                href="https://search.google.com/local/writereview?placeid=ChIJfXYa4oPPXzkRD1P8S7a9swU"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Post on Google Reviews
+              </a>
+              or <a id="complaint-link" href="/complaint">open the full resolution form</a>.
+            </p>
+          </div>
+        </section>
+
+        <section
+          id="escalation-confirmation-view"
+          class="view-pane success"
+          tabindex="-1"
+          aria-labelledby="escalation-confirmed-title"
+          hidden
+        >
+          <svg class="success__icon" viewBox="0 0 76 76" aria-hidden="true">
+            <circle cx="38" cy="38" r="36" />
+            <path d="M24 39.5 33.5 49 53 28" />
+          </svg>
+          <h2 id="escalation-confirmed-title">Resolution Request Received</h2>
+          <p id="escalation-confirmed-message" class="lede">
+            Your message has been sent directly to the doctor's management desk. We will contact you within 24–48 hours.
+          </p>
+          <p class="fine-print">Reference Number</p>
+          <p class="reference" id="escalation-reference"></p>
+          <p class="fine-print">
+            <button id="escalation-new-review" class="link-button" type="button">Leave another review</button>
+          </p>
+        </section>
+
+        <section id="success-view" class="view-pane success" tabindex="-1" aria-labelledby="success-title" hidden>
+          <svg class="success__icon" viewBox="0 0 76 76" aria-hidden="true">
+            <circle cx="38" cy="38" r="36" />
+            <path d="M24 39.5 33.5 49 53 28" />
+          </svg>
+          <h2 id="success-title">Thank you for your feedback!</h2>
+          <p class="lede">Dr. Shah and the team read every response. We truly appreciate you taking the time.</p>
+
+          <div
+            id="popup-blocked-notice"
+            class="alert alert--info"
+            role="region"
+            aria-label="Open Google Reviews"
+            hidden
+          >
+            <div class="popup-fallback">
+              <p>Your browser blocked the automatic new tab. Click below to open Google Reviews:</p>
+              <a
+                id="proceed-google-btn"
+                class="btn btn--primary btn--block"
+                href="https://search.google.com/local/writereview?placeid=ChIJfXYa4oPPXzkRD1P8S7a9swU"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Proceed to Google Reviews
+              </a>
+            </div>
+          </div>
+
+          <section class="your-review" aria-labelledby="your-review-title">
+            <div class="your-review__head">
+              <h3 id="your-review-title">Your review</h3>
+              <span id="your-rating" class="your-review__stars"></span>
+            </div>
+            <p id="your-text" class="your-review__text"></p>
+            <div class="your-review__actions">
+              <button id="copy-review" class="btn btn--sm" type="button">Copy review</button>
+              <span id="copy-review-status" class="fine-print" role="status"></span>
+            </div>
+          </section>
+
+          <div id="next-complaint" class="next-step next-step--care" hidden>
+            <h3>We're sorry your visit fell short</h3>
+            <p>
+              Dr. Shah would like to put this right personally. Your rating and comments are already filled in &mdash;
+              just add how we can reach you.
+            </p>
+          </div>
+
+          <div id="next-google" class="next-step">
+            <h3 id="google-title">Share your review on Google</h3>
+            <p id="copy-status" class="copy-status--ok" role="status">
+              Review copied to clipboard! Opening Google Reviews—simply press Paste (Ctrl+V / Cmd+V) to post.
+            </p>
+            <ol class="steps" id="google-steps">
+              <li>Tap the stars on Google (you gave <strong id="google-stars-hint"></strong>)</li>
+              <li>Tap the text box and choose <strong>Paste</strong></li>
+              <li>Tap <strong>Post</strong> &mdash; only you can publish it</li>
+            </ol>
+            <a
+              id="google-link"
+              class="btn btn--google"
+              href="https://search.google.com/local/writereview?placeid=ChIJfXYa4oPPXzkRD1P8S7a9swU"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="#4285F4"
+                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.7Z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1 .7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.7-4.9h-4v3.1A12 12 0 0 0 12 24Z"
+                />
+                <path fill="#FBBC05" d="M5.3 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.9l4-3.1Z" />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8Z"
+                />
+              </svg>
+              <span id="google-label">Proceed to Google Reviews</span>
+            </a>
+            <button id="decline-google" class="btn btn--ghost btn--block" type="button">No thanks, I'm done</button>
+            <p class="fine-print next-step__hint">
+              Nothing is posted for you &mdash; you can edit your review on Google and decide whether to publish it.
+            </p>
+          </div>
+          <p id="declined-note" class="lede" hidden>No problem &mdash; thank you again for your feedback.</p>
+          <p class="fine-print" id="contact-hint">
+            Something we should put right? <a href="/complaint">Contact the clinic privately</a>.
+          </p>
+          <p class="fine-print">
+            <button id="new-review" class="link-button" type="button">Leave a different review</button>
+          </p>
+        </section>
+      </section>
+
+      <aside class="card card--quiet help-card" aria-label="Report a problem">
+        <span class="help-card__icon" aria-hidden="true">?</span>
+        <p>
+          Had a problem you'd like resolved?
+          <a href="/complaint">Report it privately to the clinic</a> &mdash; it goes straight to Dr. Shah.
+        </p>
+      </aside>
+    </main>
+    <!--partial:footer-->
+  </body>
+</html>

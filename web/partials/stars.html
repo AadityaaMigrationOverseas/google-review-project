@@ -1,0 +1,17 @@
+<fieldset class="stars" data-stars aria-describedby="rating-label rating-error">
+  <legend class="field__label">Your rating <span class="field__req">Required</span></legend>
+  <div class="stars__group" data-stars-group>
+    <input class="stars__input" type="radio" id="star-1" name="rating" value="1" />
+    <label class="stars__star" for="star-1"><span class="sr-only">1 star, Very poor</span></label>
+    <input class="stars__input" type="radio" id="star-2" name="rating" value="2" />
+    <label class="stars__star" for="star-2"><span class="sr-only">2 stars, Poor</span></label>
+    <input class="stars__input" type="radio" id="star-3" name="rating" value="3" />
+    <label class="stars__star" for="star-3"><span class="sr-only">3 stars, Okay</span></label>
+    <input class="stars__input" type="radio" id="star-4" name="rating" value="4" />
+    <label class="stars__star" for="star-4"><span class="sr-only">4 stars, Good</span></label>
+    <input class="stars__input" type="radio" id="star-5" name="rating" value="5" />
+    <label class="stars__star" for="star-5"><span class="sr-only">5 stars, Excellent</span></label>
+  </div>
+  <p class="stars__caption" id="rating-label" aria-hidden="true">Tap a star to rate</p>
+  <p class="field__error" id="rating-error" data-error-for="rating"></p>
+</fieldset>

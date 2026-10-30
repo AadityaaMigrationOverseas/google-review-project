@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Stellar Dental Clinic — Google Review Auto-Fill Helper",
+  "version": "1.0.0",
+  "description": "Automatically selects the patient's star rating and pastes their submitted review into Google's 'Write a review' dialog box (stops before Post).",
+  "permissions": ["storage"],
+  "host_permissions": ["http://localhost/*", "http://127.0.0.1/*", "*://*.google.com/*", "*://*.google.co.in/*"],
+  "content_scripts": [
+    {
+      "matches": ["http://localhost/*", "http://127.0.0.1/*"],
+      "js": ["portal-bridge.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://*.google.com/*", "*://*.google.co.in/*"],
+      "js": ["google-autofill.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ]
+}

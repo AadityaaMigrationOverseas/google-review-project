@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://YOUR_BACKEND_URL/api/:match*"
+    },
+    {
+      "source": "/r/:match*",
+      "destination": "https://YOUR_BACKEND_URL/r/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

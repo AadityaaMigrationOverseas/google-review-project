@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+data
+.env
+.env.*
+!.env.example
+.git
+test-results
+playwright-report
+sentiment-engine/build
+sentiment-engine/third_party
+sentiment-engine/models

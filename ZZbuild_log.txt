@@ -1,0 +1,49 @@
+
+> stellar-review-portal@1.0.0 start
+> node --env-file-if-exists=.env server/dist/index.js
+
+{"level":40,"time":1793363235858,"pid":17505,"hostname":"Aadityas-iMac.local","msg":"APP_SECRET not set; using an ephemeral secret (development only)"}
+{"level":30,"time":1793363235972,"pid":17505,"hostname":"Aadityas-iMac.local","msg":"Server listening at http://127.0.0.1:3000"}
+{"level":30,"time":1793363236463,"pid":17505,"hostname":"Aadityas-iMac.local","worker":0,"msg":"sentiment engine ready"}
+{"level":30,"time":1793363246976,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"gniQln5lU5WD","req":{"method":"GET","url":"/","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363246989,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"gniQln5lU5WD","res":{"statusCode":200},"responseTime":12.90628099999958,"msg":"request completed"}
+{"level":30,"time":1793363246999,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"Dd3j_II2iKkR","req":{"method":"GET","url":"/assets/review-BWzSzsxo.js","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363247001,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"Dd3j_II2iKkR","res":{"statusCode":200},"responseTime":1.7802800000008574,"msg":"request completed"}
+{"level":30,"time":1793363247010,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"2wj3pNlO0J0V","req":{"method":"GET","url":"/api/public/form-token?purpose=review","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363247012,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"2wj3pNlO0J0V","res":{"statusCode":200},"responseTime":1.3327339999996184,"msg":"request completed"}
+{"level":30,"time":1793363251771,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"T9d9w-aNDs2K","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363251793,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"T9d9w-aNDs2K","res":{"statusCode":200},"responseTime":22.650084999999308,"msg":"request completed"}
+{"level":30,"time":1793363255805,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"Vf5gsfIIjJ_L","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363255817,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"Vf5gsfIIjJ_L","res":{"statusCode":200},"responseTime":12.284276999998838,"msg":"request completed"}
+{"level":30,"time":1793363256380,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"1AATSs5QSMsO","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363256381,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"1AATSs5QSMsO","res":{"statusCode":200},"responseTime":0.5039360000009765,"msg":"request completed"}
+{"level":30,"time":1793363258309,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"mn5SlgKhkxpi","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363258323,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"mn5SlgKhkxpi","res":{"statusCode":200},"responseTime":13.504414999999426,"msg":"request completed"}
+{"level":30,"time":1793363258783,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"aKlM8b-6rR0D","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363258801,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"aKlM8b-6rR0D","res":{"statusCode":200},"responseTime":18.37355700000262,"msg":"request completed"}
+{"level":30,"time":1793363259285,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"am2CjrMVmgFD","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363259301,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"am2CjrMVmgFD","res":{"statusCode":200},"responseTime":15.618006000000605,"msg":"request completed"}
+{"level":30,"time":1793363259921,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"_W0X-e_tta_U","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363259937,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"_W0X-e_tta_U","res":{"statusCode":200},"responseTime":15.38126199999897,"msg":"request completed"}
+{"level":30,"time":1793363261372,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"7xPpSqA9qCoA","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363261388,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"7xPpSqA9qCoA","res":{"statusCode":200},"responseTime":15.928252000001521,"msg":"request completed"}
+{"level":30,"time":1793363262988,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"_P-xljtZHiEV","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363263006,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"_P-xljtZHiEV","res":{"statusCode":200},"responseTime":17.23193700000047,"msg":"request completed"}
+{"level":30,"time":1793363263610,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"ybWOKijh9sln","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363263627,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"ybWOKijh9sln","res":{"statusCode":200},"responseTime":16.729903999999806,"msg":"request completed"}
+{"level":30,"time":1793363264678,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"gBHSiziN7wao","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363264695,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"gBHSiziN7wao","res":{"statusCode":200},"responseTime":17.338811000001442,"msg":"request completed"}
+{"level":30,"time":1793363265220,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"MGJR9XaYbEPl","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363265220,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"MGJR9XaYbEPl","res":{"statusCode":200},"responseTime":0.610263999999006,"msg":"request completed"}
+{"level":30,"time":1793363266909,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"b1WwMIRMFigk","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363266927,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"b1WwMIRMFigk","res":{"statusCode":200},"responseTime":17.718667999997706,"msg":"request completed"}
+{"level":30,"time":1793363268125,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"R_DpfvCbpkGu","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363268145,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"R_DpfvCbpkGu","res":{"statusCode":200},"responseTime":20.008388000002014,"msg":"request completed"}
+{"level":30,"time":1793363269372,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"UyyB9t1VkbDl","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363269392,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"UyyB9t1VkbDl","res":{"statusCode":200},"responseTime":20.12376100000256,"msg":"request completed"}
+{"level":30,"time":1793363269975,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"6jsbZkfYfUFz","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363269976,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"6jsbZkfYfUFz","res":{"statusCode":200},"responseTime":0.5072890000010375,"msg":"request completed"}
+{"level":30,"time":1793363271914,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"vTXX6x6R3uGP","req":{"method":"POST","url":"/api/sentiment/preview","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363271934,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"vTXX6x6R3uGP","res":{"statusCode":200},"responseTime":20.131743999998434,"msg":"request completed"}
+{"level":30,"time":1793363274243,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"MrMum1hqOJCp","req":{"method":"POST","url":"/api/reviews/submit","host":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":57669},"msg":"incoming request"}
+{"level":30,"time":1793363274246,"pid":17505,"hostname":"Aadityas-iMac.local","reqId":"MrMum1hqOJCp","res":{"statusCode":201},"responseTime":3.038275999999314,"msg":"request completed"}

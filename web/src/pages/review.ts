@@ -63,7 +63,6 @@ const escalationAlert = byId('escalation-alert');
 
 const linkCode = /^\/r\/([A-Za-z0-9]{6,16})\/?$/.exec(location.pathname)?.[1] ?? null;
 
-let lastPreview: SentimentPreviewResponse | null = null;
 let previewSeq = 0;
 let activeSubmission: ReviewSubmission | null = null;
 let toastTimer: number | null = null;
@@ -123,7 +122,6 @@ const runSentimentPreview = debounce(async () => {
   const raw = textarea.value;
   const cleaned = normalizeText(raw);
   if (textLength(cleaned) < LIMITS.reviewTextMin) {
-    lastPreview = null;
     previewBadge.hidden = true;
     return;
   }
@@ -134,7 +132,6 @@ const runSentimentPreview = debounce(async () => {
       body: { sessionId, reviewText: raw },
     });
     if (seq !== previewSeq) return;
-    lastPreview = res;
     if (res.label) {
       previewBadge.dataset.sentiment = res.label;
       previewBadge.textContent = res.label === 'POSITIVE' ? 'Verified · Positive tone' : 'Verified · Direct care route';
@@ -183,14 +180,12 @@ function showToast(message?: string): void {
 async function launchGoogleReviewFlow(
   url: string,
   reviewText: string,
-  rating: number,
   alreadyCopied: boolean,
   preOpenedPopup?: Window | null,
 ): Promise<void> {
   const handoff = await executeGoogleReviewHandoff({
     url,
     reviewText,
-    rating,
     alreadyCopied,
     ...(preOpenedPopup ? { openWindow: () => preOpenedPopup } : {}),
   });
@@ -208,9 +203,7 @@ async function launchGoogleReviewFlow(
 
   clipboardModal.hidden = true;
   const toastMessage =
-    handoff.mode === 'dom_prefilled_awaiting_user_post'
-      ? 'Review prefilled on Google (and copied to clipboard)! Please verify and click Post to publish.'
-      : 'Review copied to clipboard! Opening Google "Write a Review" dialog—press Paste (Ctrl+V / Cmd+V) and click Post.';
+    'Review copied to clipboard! Opening Google "Write a Review" dialog—press Paste (Ctrl+V / Cmd+V) and click Post.';
   showToast(toastMessage);
   copyStatus.textContent = toastMessage;
   copyStatus.classList.add('copy-status--ok');
@@ -222,9 +215,8 @@ function showSubmissionView(
   opts: { restored?: boolean; copied?: boolean; autoLaunch?: boolean; preOpenedPopup?: Window | null } = {},
 ): void {
   activeSubmission = submission;
-  const { result, text, rating } = submission;
+  const { result, text } = submission;
   const googleUrl = result.googleUrl ?? result.googleReviewUrl;
-  const isPositive = result.status ? result.status === 'POSITIVE' : result.next === 'google';
 
   renderNextStep(submission, {
     onComplaint: (s) =>
@@ -233,7 +225,6 @@ function showSubmissionView(
       void executeGoogleReviewHandoff({
         url,
         reviewText: text,
-        rating,
         alreadyCopied: true,
       }).then((handoff) => {
         popupBlockedNotice.hidden = handoff.tabOpened;
@@ -244,41 +235,43 @@ function showSubmissionView(
 
   byId('review-view').hidden = true;
 
-  if (isPositive) {
-    byId('escalation-view').hidden = true;
-    byId('escalation-confirmation-view').hidden = true;
-    const success = byId('success-view');
-    success.hidden = false;
+  // Every patient — regardless of rating or sentiment — sees the Google review option
+  // with equal prominence. The private complaint form is offered as an extra choice
+  // (the "Tell the clinic privately" button reveals the in-page escalation form).
+  byId('escalation-view').hidden = true;
+  byId('escalation-confirmation-view').hidden = true;
+  const success = byId('success-view');
+  success.hidden = false;
 
-    if (!opts.restored && opts.autoLaunch) {
-      void launchGoogleReviewFlow(googleUrl, text, rating, Boolean(opts.copied), opts.preOpenedPopup);
-    }
-
-    if (!opts.restored && clipboardModal.hidden) {
-      success.focus();
-      success.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
-    document.title = 'Thank you · Stellar Dental Clinic';
-  } else {
-    // Step 5: Automated Negative Review Flow (Zero Page Reload -> Internal Escalation Form)
-    byId('success-view').hidden = true;
-    byId('escalation-confirmation-view').hidden = true;
-    sessionStorage.setItem(COMPLAINT_PREFILL_KEY, JSON.stringify({ rating: submission.rating, details: text }));
-
-    const escalation = byId('escalation-view');
-    escalation.hidden = false;
-    if (!opts.restored) {
-      fullNameInput.focus();
-      escalation.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
-    document.title = 'We want to make this right · Stellar Dental Clinic';
+  if (!opts.restored && opts.autoLaunch) {
+    void launchGoogleReviewFlow(googleUrl, text, Boolean(opts.copied), opts.preOpenedPopup);
   }
+
+  if (!opts.restored && clipboardModal.hidden) {
+    success.focus();
+    success.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  document.title = 'Thank you · Stellar Dental Clinic';
 }
+
+/** The private complaint form is an optional extra choice: reveal it in-place on request. */
+byId('open-complaint').addEventListener('click', () => {
+  if (!activeSubmission) return;
+  sessionStorage.setItem(
+    COMPLAINT_PREFILL_KEY,
+    JSON.stringify({ rating: activeSubmission.rating, details: activeSubmission.text }),
+  );
+  byId('success-view').hidden = true;
+  const escalation = byId('escalation-view');
+  escalation.hidden = false;
+  fullNameInput.focus();
+  escalation.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  document.title = 'Share privately with the clinic · Stellar Dental Clinic';
+});
 
 clipboardModalBtn.addEventListener('click', async () => {
   if (!activeSubmission) return;
   const text = activeSubmission.text;
-  const rating = activeSubmission.rating;
   const googleUrl = activeSubmission.result.googleUrl ?? activeSubmission.result.googleReviewUrl;
   const ok = await copyText(text);
   clipboardModal.hidden = true;
@@ -294,7 +287,6 @@ clipboardModalBtn.addEventListener('click', async () => {
   const handoff = await executeGoogleReviewHandoff({
     url: googleUrl,
     reviewText: text,
-    rating,
     alreadyCopied: true,
   });
   popupBlockedNotice.hidden = handoff.tabOpened;
@@ -303,7 +295,6 @@ clipboardModalBtn.addEventListener('click', async () => {
 function resetToReviewForm(): void {
   clearSubmission();
   activeSubmission = null;
-  lastPreview = null;
   form.reset();
   consent.checked = true;
   escalationForm.reset();
@@ -340,26 +331,23 @@ form.addEventListener('submit', async (event) => {
 
   const rawText = textarea.value;
   const ratingValue = stars.value!;
-  const isLikelyPositive = ratingValue >= 4 && lastPreview?.label !== 'NEGATIVE';
 
-  // Step 4: Execute clipboard write immediately within the user-gesture context
-  // when rating >= 4 and preview is not negative.
-  const gestureCopyPromise: Promise<boolean> | null = isLikelyPositive ? copyText(rawText) : null;
+  // The Google review option is offered to every patient with equal prominence (no
+  // sentiment-based gating), so copy the review text and open the Google "Write a
+  // Review" dialog within the user-gesture context for all submissions — without
+  // waiting for the backend round-trip.
+  const gestureCopyPromise: Promise<boolean> = copyText(rawText);
   let preOpenedPopup: Window | null = null as Window | null;
-  if (isLikelyPositive && gestureCopyPromise) {
-    // Open the Google "Write a Review" dialog as soon as the clipboard write succeeds,
-    // without waiting for the backend network round-trip.
-    void gestureCopyPromise.then((copiedOk) => {
-      if (copiedOk) {
-        const initialGoogleUrl = byId<HTMLAnchorElement>('google-link').href;
-        try {
-          preOpenedPopup = window.open(initialGoogleUrl, '_blank');
-        } catch {
-          preOpenedPopup = null;
-        }
+  void gestureCopyPromise.then((copiedOk) => {
+    if (copiedOk) {
+      const initialGoogleUrl = byId<HTMLAnchorElement>('google-link').href;
+      try {
+        preOpenedPopup = window.open(initialGoogleUrl, '_blank');
+      } catch {
+        preOpenedPopup = null;
       }
-    });
-  }
+    }
+  });
 
   setBusy(submitBtn, true, 'Submitting…');
   try {
@@ -384,16 +372,7 @@ form.addEventListener('submit', async (event) => {
     };
 
     const result = await api<SubmitReviewResponse>('/api/reviews/submit', { method: 'POST', body: payload });
-    const isPositive = result.status ? result.status === 'POSITIVE' : result.next === 'google';
-    if (!isPositive && preOpenedPopup) {
-      try {
-        preOpenedPopup.close();
-      } catch {
-        /* ignore */
-      }
-      preOpenedPopup = null;
-    }
-    const copied = isPositive ? (gestureCopyPromise ? await gestureCopyPromise : await copyText(rawText)) : false;
+    const copied = await gestureCopyPromise;
 
     const submission: ReviewSubmission = {
       rating: ratingValue,

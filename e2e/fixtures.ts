@@ -10,7 +10,7 @@ export function clientIp(seed: string): string {
   return `10.200.${a}.${b}`;
 }
 
-/** Stand-in for Google Maps review page so redirects and semi-automated handoff are observable without leaving the test sandbox. */
+/** Stand-in for Google Maps review page so redirects are observable without leaving the test sandbox. */
 export async function stubGoogle(context: BrowserContext): Promise<void> {
   await context.route(/^https:\/\/(share\.google|search\.google\.com)\//, (route) =>
     route.fulfill({

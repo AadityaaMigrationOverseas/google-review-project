@@ -278,12 +278,15 @@
             </div>
           </section>
 
-          <div id="next-complaint" class="next-step next-step--care" hidden>
-            <h3>We're sorry your visit fell short</h3>
+          <div id="next-complaint" class="next-step next-step--care">
+            <h3 id="complaint-title">Prefer to share your feedback privately?</h3>
             <p>
-              Dr. Shah would like to put this right personally. Your rating and comments are already filled in &mdash;
-              just add how we can reach you.
+              You can send your rating and comments straight to Dr. Shah's team instead of (or as well as) posting on
+              Google. Your review is already filled in &mdash; just add how we can reach you.
             </p>
+            <button id="open-complaint" class="btn btn--ghost btn--block" type="button">
+              Tell the clinic privately
+            </button>
           </div>
 
           <div id="next-google" class="next-step">
@@ -326,9 +329,6 @@
             </p>
           </div>
           <p id="declined-note" class="lede" hidden>No problem &mdash; thank you again for your feedback.</p>
-          <p class="fine-print" id="contact-hint">
-            Something we should put right? <a href="/complaint">Contact the clinic privately</a>.
-          </p>
           <p class="fine-print">
             <button id="new-review" class="link-button" type="button">Leave a different review</button>
           </p>

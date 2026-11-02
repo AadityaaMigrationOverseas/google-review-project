@@ -45,8 +45,4 @@ export default tseslint.config(
     files: ['web/src/**/*.ts'],
     languageOptions: { globals: globals.browser },
   },
-  {
-    files: ['chrome-extension/**/*.js'],
-    languageOptions: { globals: { ...globals.browser, ...globals.webextensions } },
-  },
 );

@@ -61,7 +61,7 @@ describe('public review flow', () => {
     expect(row.ip_hash).not.toContain('10.0.');
   });
 
-  it('routes by the C++ verdict while always returning the Google link', async () => {
+  it('sends every patient to Google regardless of verdict, while recording the C++ verdict internally', async () => {
     const positive = await submitReview(t, { rating: 5, text: 'Great, excellent, I love it here.' });
     const negative = await submitReview(t, { rating: 1, text: 'Awful visit, painful and rude staff.' });
     const neutral = await submitReview(t, { rating: 3, text: 'It was on Tuesday __uncertain__.' });
@@ -71,11 +71,12 @@ describe('public review flow', () => {
       const { id: _id, duplicate: _d, ...rest } = r.json() as { id: number; duplicate: boolean };
       return rest;
     });
+    // The patient-facing step is always Google; only the stored sentiment differs.
     expect(bodies).toEqual([
       { googleReviewUrl: GOOGLE, sentiment: 'positive', next: 'google' },
-      { googleReviewUrl: GOOGLE, sentiment: 'negative', next: 'complaint' },
-      { googleReviewUrl: GOOGLE, sentiment: 'neutral', next: 'complaint' },
-      { googleReviewUrl: GOOGLE, sentiment: 'negative', next: 'complaint' },
+      { googleReviewUrl: GOOGLE, sentiment: 'negative', next: 'google' },
+      { googleReviewUrl: GOOGLE, sentiment: 'neutral', next: 'google' },
+      { googleReviewUrl: GOOGLE, sentiment: 'negative', next: 'google' },
     ]);
 
     const labels = t.c.db.prepare('SELECT sentiment_label FROM reviews ORDER BY id').all();
@@ -117,7 +118,7 @@ describe('public review flow', () => {
 
   it('labels near-coin-flip verdicts as uncertain', async () => {
     const res = await submitReview(t, { rating: 3, text: 'Visit happened __coinflip__.' });
-    expect(res.json()).toMatchObject({ sentiment: 'uncertain', next: 'complaint' });
+    expect(res.json()).toMatchObject({ sentiment: 'uncertain', next: 'google' });
   });
 
   it('still stores the review when the C++ engine fails, and retries later', async () => {
@@ -274,7 +275,8 @@ describe('public review flow', () => {
       latencyMs: 0,
     });
 
-    // Submitting via /api/reviews/submit uses the warmed cache and returns status: POSITIVE.
+    // The patient is always sent to Google (next: 'google'); the internal status
+    // reflects the sentiment verdict for staff reporting only.
     const posRes = await t.app.inject({
       method: 'POST',
       url: '/api/reviews/submit',
@@ -290,7 +292,7 @@ describe('public review flow', () => {
       next: 'google',
     });
 
-    // Authoritative rule: 5 stars with negative sentiment -> NEGATIVE.
+    // Internal flag: 5 stars with negative sentiment -> status NEGATIVE, but still next: 'google'.
     const mismatchRes = await t.app.inject({
       method: 'POST',
       url: '/api/reviews/submit',
@@ -303,10 +305,10 @@ describe('public review flow', () => {
       status: 'NEGATIVE',
       reviewId: expect.any(String),
       sentiment: 'negative',
-      next: 'complaint',
+      next: 'google',
     });
 
-    // Authoritative rule: 3 stars with positive sentiment -> NEGATIVE.
+    // Internal flag: 3 stars with positive sentiment -> status NEGATIVE, but still next: 'google'.
     const lowStarRes = await t.app.inject({
       method: 'POST',
       url: '/api/reviews/submit',
@@ -318,7 +320,7 @@ describe('public review flow', () => {
     expect(lowStarRes.json()).toMatchObject({
       status: 'NEGATIVE',
       sentiment: 'positive',
-      next: 'complaint',
+      next: 'google',
     });
 
     // Step 5: Internal escalation form submits to /api/complaints/submit with fullName.

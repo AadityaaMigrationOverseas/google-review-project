@@ -46,6 +46,17 @@ describe.skipIf(!realEngineAvailable)('supplied C++ sentiment engine', () => {
     expect(await service.evaluate('😀😀 ★★★★★ !!!')).toMatchObject({ status: 'skipped', error: 'EMPTY' });
   });
 
+  it('labels Hindi and Gujarati reviews uncertain because the English model cannot read them', async () => {
+    expect(await service.evaluate('डॉक्टर बहुत अच्छे थे, दर्द बिल्कुल नहीं हुआ')).toMatchObject({
+      status: 'analyzed',
+      label: 'uncertain',
+    });
+    expect(await service.evaluate('ડૉક્ટર ખૂબ સારા હતા, દર્દ બિલકુલ ન થયું')).toMatchObject({
+      status: 'analyzed',
+      label: 'uncertain',
+    });
+  });
+
   it('handles accents, emoji and control characters safely', async () => {
     const r = await service.evaluate('Très bien!! Excellent café-like waiting room 😀\u0000\ttruly great');
     expect(r.label).toBe('positive');

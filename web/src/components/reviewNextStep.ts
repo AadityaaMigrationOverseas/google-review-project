@@ -48,7 +48,6 @@ export function selectReviewText(): void {
 export function renderNextStep(submission: ReviewSubmission, handlers: NextStepHandlers): void {
   const { rating, text, result } = submission;
   const googleUrl = result.googleUrl ?? result.googleReviewUrl;
-  const toComplaint = result.status ? result.status === 'NEGATIVE' : result.next === 'complaint';
 
   replaceChildren(byId('your-rating'), renderStars(rating));
   byId('your-text').textContent = text;
@@ -71,11 +70,10 @@ export function renderNextStep(submission: ReviewSubmission, handlers: NextStepH
   const reviewStatus = byId('copy-review-status');
   const label = byId('google-label');
 
-  byId('next-complaint').hidden = !toComplaint;
-  byId('contact-hint').hidden = toComplaint;
-  byId('decline-google').hidden = toComplaint;
-  byId('next-google').classList.toggle('next-step--secondary', toComplaint);
-  byId('google-title').textContent = toComplaint ? 'Prefer to share it publicly?' : 'Share your review on Google';
+  // Every patient sees the Google review option with equal prominence; the private
+  // complaint form (#next-complaint) is always offered as an additional choice.
+  byId('next-google').classList.remove('next-step--secondary');
+  byId('google-title').textContent = 'Share your review on Google';
 
   const complaintLink = document.getElementById('complaint-link') as HTMLAnchorElement | null;
   if (complaintLink) {

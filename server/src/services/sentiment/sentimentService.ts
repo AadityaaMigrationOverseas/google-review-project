@@ -38,6 +38,11 @@ export function classify(
   return { label, confidence: raw.confidence, pPositive: raw.pPositive };
 }
 
+/** True when the review contains letters the English SST-2 model cannot read. */
+export function hasNonLatinLetter(text: string): boolean {
+  return /\p{L}/u.test(text) && !/^[\p{Script=Latin}\P{L}]*$/u.test(text);
+}
+
 /** True when the star rating and the model strongly disagree; useful for staff triage. */
 export function isRatingMismatch(rating: number, label: SentimentLabel | null): boolean {
   return (rating >= 4 && label === 'negative') || (rating <= 2 && label === 'positive');
@@ -170,6 +175,20 @@ export class SentimentService {
     } catch (err) {
       const code = err instanceof SentimentError ? err.code : 'INTERNAL';
       if (code === 'EMPTY') {
+        // Emoji and punctuation have nothing to judge. Text written only in a
+        // non-Latin script (Hindi, Gujarati, …) is real feedback the English
+        // model cannot read, so it is stored as uncertain for staff — not skipped.
+        if (hasNonLatinLetter(text)) {
+          return {
+            ...base,
+            status: 'analyzed',
+            label: 'uncertain',
+            confidence: null,
+            pPositive: null,
+            latencyMs: null,
+            error: null,
+          };
+        }
         return {
           ...base,
           status: 'skipped',

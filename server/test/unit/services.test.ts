@@ -10,6 +10,7 @@ import { RateLimiter } from '../../src/services/security/rateLimiter.js';
 import { GoogleReviewDestinationService } from '../../src/services/google/reviewDestination.js';
 import {
   classify,
+  hasNonLatinLetter,
   isConsistent,
   isRatingMismatch,
   SentimentService,
@@ -54,6 +55,24 @@ describe('sentiment classification', () => {
     expect(isRatingMismatch(1, 'positive')).toBe(true);
     expect(isRatingMismatch(3, 'negative')).toBe(false);
     expect(isRatingMismatch(5, null)).toBe(false);
+  });
+
+  it('treats script the English model cannot read as uncertain, and emoji-only text as skipped', async () => {
+    const empty: SentimentAnalyzer = {
+      modelId: 'test',
+      analyze: () => Promise.reject(new SentimentError('EMPTY')),
+      status: () => ({ ready: true, workers: 1, readyWorkers: 1, queued: 0 }),
+      close: async () => {},
+    };
+    const s = new SentimentService(empty, T, new FakeClock(), silentLogger);
+    await expect(s.evaluate('डॉक्टर बहुत अच्छे थे')).resolves.toMatchObject({
+      status: 'analyzed',
+      label: 'uncertain',
+    });
+    await expect(s.evaluate('ડૉક્ટર ખૂબ સારા હતા')).resolves.toMatchObject({ label: 'uncertain' });
+    await expect(s.evaluate('😀😀 ★★★★★')).resolves.toMatchObject({ status: 'skipped', error: 'EMPTY', label: null });
+    expect(hasNonLatinLetter('doctor bahut acchi thi')).toBe(false);
+    expect(hasNonLatinLetter('doctor बहुत acchi')).toBe(true);
   });
 
   it('records engine failures instead of throwing', async () => {

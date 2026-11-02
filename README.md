@@ -13,16 +13,14 @@ A patient feedback portal for **Stellar Dental Clinic** and **Dr. Dhruvi Shah**:
 
 1. **Landing & Input (`/`, `/review`, `/r/:code`):** Patient selects 1–5 stars and enters review text. The **Submit Review** button remains disabled until at least 1 star is selected and the normalized review text reaches at least 5 characters. An active `sessionId` is maintained for tracing.
 2. **Real-Time Verification (`POST /api/sentiment/preview`, 350 ms debounce):** As the patient types, the frontend sends the text to the backend, which queries the persistent C++ DistilBERT worker pool (~19 ms) and caches the predicted label (`POSITIVE` or `NEGATIVE`) and confidence so final submission resolves instantaneously.
-3. **Authoritative Submission (`POST /api/reviews/submit`):**
-   - If `rating >= 4` AND `sentiment == 'POSITIVE'` → **`status: "POSITIVE"`** (`googleUrl` returned).
-   - If `rating <= 3` OR `sentiment == 'NEGATIVE'` (including `neutral` / `uncertain`) → **`status: "NEGATIVE"`** (`reviewId` returned).
-   - If C++ inference times out (`> 1000 ms`) or is unavailable, the server falls back to the star rating heuristic (`rating >= 4` → `POSITIVE`; `rating <= 3` → `NEGATIVE`).
-4. **Automated Positive Review Flow (Zero Friction):**
+3. **Authoritative Submission (`POST /api/reviews/submit`):** The patient-facing next step is **always Google** (`next: "google"`) — every patient is shown the Google review option with equal prominence, with the private complaint form offered as an extra choice. Google's policy forbids "review gating" (steering only happy patients to review), so rating and sentiment never decide what the patient sees.
+   - The response still carries an **internal-only** `status` for staff reporting and flags: `POSITIVE` when `rating >= 4` AND `sentiment == 'positive'`; otherwise `NEGATIVE` (covering low stars, `neutral`, `uncertain`, or a rating/sentiment mismatch). When C++ inference times out (`> 1000 ms`) or is unavailable, the status falls back to the star heuristic (`rating >= 4` → `POSITIVE`). This drives the admin dashboard's sentiment analytics and the rating/text mismatch flag — not the patient's routing.
+4. **Google Review Handoff (Copy & Paste) — shown to every patient:**
    - Immediately copies `reviewText` to the clipboard within the user-gesture context (`navigator.clipboard.writeText` with `document.execCommand('copy')` fallback).
-   - Launches Google's native review modal in a new tab (`https://search.google.com/local/writereview?placeid=<GOOGLE_PLACE_ID>` or configured `GOOGLE_REVIEW_URL`) and displays an animated toast: _"Review copied to clipboard! Opening Google Reviews—simply press Paste (Ctrl+V / Cmd+V) to post."_
+   - Opens Google's native review box in a new tab (`https://search.google.com/local/writereview?placeid=<GOOGLE_PLACE_ID>` or configured `GOOGLE_REVIEW_URL`) and displays an animated toast: _"Review copied to clipboard! Opening Google Reviews—simply press Paste (Ctrl+V / Cmd+V) to post."_ **The patient pastes and posts the review themselves** — browsers enforce the Same-Origin Policy, so the portal cannot read Google's page or type into it on the patient's behalf.
    - If clipboard permissions are blocked, immediately displays a one-click floating modal (_"Click here to copy and continue"_). If a popup blocker intercepts `window.open`, displays an inline high-visibility button (_"Proceed to Google Reviews"_).
-5. **Automated Negative Review Flow (Zero Page Reload):**
-   - Smoothly transitions in-place (no page reload) to the **Internal Escalation Form** (`#escalation-view`) with the empathetic header, a locked read-only preview accordion of the submitted star rating and review text, and pre-validated fields (**Full Name**, **Phone Number**, **Email Address**).
+5. **Private Complaint Form (offered as an extra choice):**
+   - The success screen always offers a **"Tell the clinic privately"** option. Choosing it reveals the **Internal Escalation Form** (`#escalation-view`) in-place (no page reload) with a locked read-only preview accordion of the submitted star rating and review text, and pre-validated fields (**Full Name**, **Phone Number**, **Email Address**). The standalone `/complaint` page offers the same form for anyone who prefers it.
    - Submitting posts to `POST /api/complaints/submit`, stores the complaint in SQLite, records an audit log entry, queues the automated doctor alert email, and transitions in-place to the confirmation screen: _"Your message has been sent directly to the doctor's management desk. We will contact you within 24–48 hours."_
 
 ### Google integration — what is and isn't possible
@@ -107,8 +105,11 @@ deploy/            Caddyfile, systemd unit
 - `src/sentiment_server.cpp` renames its `main` and `#include`s it, then adds a persistent stdin/stdout protocol:
   - `READY\t1` handshake after model load + warm-up
   - request `<id>\t<text>` → `<id>\tOK\t<LABEL>\t<confidence>\t<p_positive>\t<tokens>\t<micros>` or `<id>\tERR\t<CODE>`
-- The wrapper strips non-ASCII/control bytes (the original calls `isalnum` on signed chars — undefined behaviour)
-  and truncates to the model's 512-token limit.
+- The wrapper replaces non-ASCII and control bytes with spaces before they reach the supplied tokenizer (the original
+  calls `isalnum` on signed chars — undefined behaviour) and truncates to the model's 512-token limit. The model is
+  English SST-2, so a review written only in Hindi or Gujarati has no readable words left. Node stores that as
+  **`uncertain`** for staff, not as a skipped review. Roman-script Hinglish is scored normally. None of this changes
+  the patient path: every patient still gets the Google option, with the private complaint form as an extra choice.
 - Node side (`cppEngine.ts`): `spawn` with `shell: false`, an argument array and a minimal environment (no command
   injection surface); text travels over stdin, never argv. Per-request deadline with `SIGKILL`, exponential restart
   backoff, crash-loop fail-fast, bounded queue (`OVERLOADED`), protocol-desync recycling.
@@ -219,11 +220,11 @@ spoofable, which would otherwise collapse every patient onto the proxy's IP for 
 
 ## Testing
 
-| Suite                | What it covers                                                                                                                                                                                                                                                                                                  | Result                                          |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Unit (Vitest)        | Validation, routing rule, 4-way sentiment mapping + engine-output validation, Google destination (deep link, host allow-list), process pool (hangs, crashes, garbage, overload), outbox, rate limiter, form tokens, RBAC, passwords, templates, config                                                          | 110 passing (with integration)                  |
-| Integration (Vitest) | Real C++ engine (positive / negative / low-confidence / unicode / 512-token), full HTTP API, review + complaint idempotency, uncertain verdicts, CSRF, RBAC, PII masking, email, short links, headers, proxy IPs                                                                                                | (included above)                                |
-| E2E (Playwright)     | Positive flow (exact text preserved on screen, copy, explicit Google tap, back-from-Google restore), decline, clipboard-denied fallback, negative → prefilled complaint, validation, keyboard stars, invalid link, admin login, link → review attribution, sign-out, no horizontal overflow (desktop + Pixel 7) | 27 passing, 1 skipped (keyboard test on mobile) |
+| Suite                | What it covers                                                                                                                                                                                                                                                                                                                                                                                                                                    | Result                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Unit (Vitest)        | Validation, routing rule, 4-way sentiment mapping + engine-output validation, Google destination (deep link, host allow-list), process pool (hangs, crashes, garbage, overload), outbox, rate limiter, form tokens, RBAC, passwords, templates, config                                                                                                                                                                                            | 110 passing (with integration)                  |
+| Integration (Vitest) | Real C++ engine (positive / negative / low-confidence / unicode / 512-token), full HTTP API, review + complaint idempotency, uncertain verdicts, CSRF, RBAC, PII masking, email, short links, headers, proxy IPs                                                                                                                                                                                                                                  | (included above)                                |
+| E2E (Playwright)     | Positive flow (exact text preserved on screen, copy to clipboard, explicit Google tap, back-from-Google restore, patient pastes manually), decline, clipboard-denied fallback, popup-blocked fallback, every patient (even 1-star) sees Google with the private complaint form offered as an extra choice, validation, keyboard stars, invalid link, admin login, link → review attribution, sign-out, no horizontal overflow (desktop + Pixel 7) | 29 passing, 1 skipped (keyboard test on mobile) |
 
 ---
 

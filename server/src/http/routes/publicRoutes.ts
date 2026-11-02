@@ -71,7 +71,7 @@ export function registerPublicRoutes(app: FastifyInstance, c: Container): void {
     if (isHoneypotTripped(payload)) {
       request.log.warn({ ipHash }, 'review honeypot tripped');
       reply.code(201);
-      return { id: 0, googleReviewUrl: c.googleReviews.url, sentiment: null, next: 'complaint', duplicate: false };
+      return { id: 0, googleReviewUrl: c.googleReviews.url, sentiment: null, next: nextStepFor(), duplicate: false };
     }
     const parsed = validateReviewInput(payload);
     if (!parsed.ok) throw validationFailed(parsed.errors);
@@ -85,7 +85,7 @@ export function registerPublicRoutes(app: FastifyInstance, c: Container): void {
         id: replay.id,
         googleReviewUrl: c.googleReviews.url,
         sentiment: replay.sentiment,
-        next: nextStepFor(replay.rating, replay.sentiment),
+        next: nextStepFor(),
         duplicate: true,
       };
     }
@@ -97,7 +97,7 @@ export function registerPublicRoutes(app: FastifyInstance, c: Container): void {
       id,
       googleReviewUrl: c.googleReviews.url,
       sentiment,
-      next: nextStepFor(parsed.value.rating, sentiment),
+      next: nextStepFor(),
       duplicate,
     };
   });
@@ -152,12 +152,12 @@ export function registerPublicRoutes(app: FastifyInstance, c: Container): void {
       return {
         id: 0,
         reviewId: '0',
-        status: 'NEGATIVE',
+        status: 'POSITIVE',
         googleUrl: c.googleReviews.url,
         googleReviewUrl: c.googleReviews.url,
         googleDestinationKind: c.googleReviews.kind,
         sentiment: null,
-        next: 'complaint',
+        next: nextStepFor(),
         duplicate: false,
       };
     }
@@ -174,7 +174,7 @@ export function registerPublicRoutes(app: FastifyInstance, c: Container): void {
 
     const replay = c.reviews.findByIdempotencyKey(rawKey);
     if (replay) {
-      const next = nextStepFor(replay.rating, replay.sentiment);
+      const next = nextStepFor();
       const status = classifyReviewStatus(replay.rating, replay.sentiment);
       reply.code(200);
       return {
@@ -191,7 +191,9 @@ export function registerPublicRoutes(app: FastifyInstance, c: Container): void {
     }
 
     const { id, sentiment, duplicate } = await c.reviews.submit(parsed.value, rawKey, { ipHash });
-    const next = nextStepFor(parsed.value.rating, sentiment);
+    const next = nextStepFor();
+    // Sentiment-derived status is recorded for internal reporting / staff flags only;
+    // it never changes what the patient is shown (every patient gets the Google option).
     const status = classifyReviewStatus(parsed.value.rating, sentiment);
 
     c.audit.record({

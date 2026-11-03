@@ -122,6 +122,7 @@ export function registerPublicRoutes(app: FastifyInstance, c: Container): void {
     checkFormToken(c, payload.formToken, 'complaint');
 
     const result = c.complaints.submit(parsed.value, payload.idempotencyKey, { ipHash });
+    if (result.created) await c.outbox.kick();
     reply.code(result.created ? 201 : 200);
     return { reference: result.reference };
   });
@@ -253,6 +254,7 @@ export function registerPublicRoutes(app: FastifyInstance, c: Container): void {
     if (!parsed.ok) throw validationFailed(parsed.errors);
 
     const result = c.complaints.submit(parsed.value, rawKey, { ipHash });
+    if (result.created) await c.outbox.kick();
     c.audit.record({
       userId: null,
       action: 'complaint.submit',

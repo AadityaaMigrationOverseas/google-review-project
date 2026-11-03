@@ -58,12 +58,14 @@ const escalationForm = byId<HTMLFormElement>('escalation-form');
 const fullNameInput = byId<HTMLInputElement>('full-name');
 const escalationPhoneInput = byId<HTMLInputElement>('escalation-phone');
 const escalationEmailInput = byId<HTMLInputElement>('escalation-email');
+const escalationConsent = byId<HTMLInputElement>('escalation-consent');
 const escalationSubmitBtn = byId<HTMLButtonElement>('escalation-submit-btn');
 const escalationAlert = byId('escalation-alert');
 
 const linkCode = /^\/r\/([A-Za-z0-9]{6,16})\/?$/.exec(location.pathname)?.[1] ?? null;
 
 let previewSeq = 0;
+let lastPreviewLabel: SentimentPreviewResponse['label'] | null = null;
 let activeSubmission: ReviewSubmission | null = null;
 let toastTimer: number | null = null;
 
@@ -112,6 +114,13 @@ const escalationController = new FormController(escalationForm, {
     control: escalationEmailInput,
     validate: () => validateEmail(escalationEmailInput.value.trim().toLowerCase()),
   },
+  consent: {
+    control: escalationConsent,
+    validate: () =>
+      escalationConsent.checked
+        ? null
+        : 'Please confirm we may use your name, phone and email to contact you, improve our care, and for marketing.',
+  },
 });
 
 /**
@@ -122,6 +131,7 @@ const runSentimentPreview = debounce(async () => {
   const raw = textarea.value;
   const cleaned = normalizeText(raw);
   if (textLength(cleaned) < LIMITS.reviewTextMin) {
+    lastPreviewLabel = null;
     previewBadge.hidden = true;
     return;
   }
@@ -132,6 +142,7 @@ const runSentimentPreview = debounce(async () => {
       body: { sessionId, reviewText: raw },
     });
     if (seq !== previewSeq) return;
+    lastPreviewLabel = res.label;
     if (res.label) {
       previewBadge.dataset.sentiment = res.label;
       previewBadge.textContent = res.label === 'POSITIVE' ? 'Verified · Positive tone' : 'Verified · Direct care route';
@@ -161,7 +172,6 @@ function loadToken(): Promise<FormTokenInfo> {
     if (info.linkValid === false) byId('link-alert').hidden = false;
     byId<HTMLAnchorElement>('google-link').href = info.googleReviewUrl;
     byId<HTMLAnchorElement>('proceed-google-btn').href = info.googleReviewUrl;
-    byId<HTMLAnchorElement>('escalation-google-link').href = info.googleReviewUrl;
   }).catch(() => {
     /* surfaced on submit if needed */
   });
@@ -210,6 +220,26 @@ async function launchGoogleReviewFlow(
   popupBlockedNotice.hidden = handoff.tabOpened;
 }
 
+function isNegativeResult(result: ReviewSubmission['result'], rating: number): boolean {
+  if (result.status) return result.status === 'NEGATIVE';
+  return rating <= 3;
+}
+
+function showContactForm(): void {
+  if (!activeSubmission) return;
+  sessionStorage.setItem(
+    COMPLAINT_PREFILL_KEY,
+    JSON.stringify({ rating: activeSubmission.rating, details: activeSubmission.text }),
+  );
+  byId('success-view').hidden = true;
+  byId('escalation-confirmation-view').hidden = true;
+  const escalation = byId('escalation-view');
+  escalation.hidden = false;
+  fullNameInput.focus();
+  escalation.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  document.title = 'Tell us how to reach you · Stellar Dental Clinic';
+}
+
 function showSubmissionView(
   submission: ReviewSubmission,
   opts: { restored?: boolean; copied?: boolean; autoLaunch?: boolean; preOpenedPopup?: Window | null } = {},
@@ -235,9 +265,18 @@ function showSubmissionView(
 
   byId('review-view').hidden = true;
 
-  // Every patient — regardless of rating or sentiment — sees the Google review option
-  // with equal prominence. The private complaint form is offered as an extra choice
-  // (the "Tell the clinic privately" button reveals the in-page escalation form).
+  if (isNegativeResult(result, submission.rating)) {
+    if (opts.preOpenedPopup) {
+      try {
+        opts.preOpenedPopup.close();
+      } catch {
+        /* ignore */
+      }
+    }
+    showContactForm();
+    return;
+  }
+
   byId('escalation-view').hidden = true;
   byId('escalation-confirmation-view').hidden = true;
   const success = byId('success-view');
@@ -256,17 +295,7 @@ function showSubmissionView(
 
 /** The private complaint form is an optional extra choice: reveal it in-place on request. */
 byId('open-complaint').addEventListener('click', () => {
-  if (!activeSubmission) return;
-  sessionStorage.setItem(
-    COMPLAINT_PREFILL_KEY,
-    JSON.stringify({ rating: activeSubmission.rating, details: activeSubmission.text }),
-  );
-  byId('success-view').hidden = true;
-  const escalation = byId('escalation-view');
-  escalation.hidden = false;
-  fullNameInput.focus();
-  escalation.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  document.title = 'Share privately with the clinic · Stellar Dental Clinic';
+  showContactForm();
 });
 
 clipboardModalBtn.addEventListener('click', async () => {
@@ -297,7 +326,9 @@ function resetToReviewForm(): void {
   activeSubmission = null;
   form.reset();
   consent.checked = true;
+  lastPreviewLabel = null;
   escalationForm.reset();
+  escalationConsent.checked = false;
   stars.reset();
   updateSubmitButtonState();
   idempotencyKey = newIdempotencyKey();
@@ -331,23 +362,23 @@ form.addEventListener('submit', async (event) => {
 
   const rawText = textarea.value;
   const ratingValue = stars.value!;
+  // 1–3 stars, or a negative tone on higher stars, stay on this page for contact details.
+  const likelyNegative = ratingValue <= 3 || lastPreviewLabel === 'NEGATIVE';
 
-  // The Google review option is offered to every patient with equal prominence (no
-  // sentiment-based gating), so copy the review text and open the Google "Write a
-  // Review" dialog within the user-gesture context for all submissions — without
-  // waiting for the backend round-trip.
-  const gestureCopyPromise: Promise<boolean> = copyText(rawText);
+  const gestureCopyPromise: Promise<boolean> | null = likelyNegative ? null : copyText(rawText);
   let preOpenedPopup: Window | null = null as Window | null;
-  void gestureCopyPromise.then((copiedOk) => {
-    if (copiedOk) {
-      const initialGoogleUrl = byId<HTMLAnchorElement>('google-link').href;
-      try {
-        preOpenedPopup = window.open(initialGoogleUrl, '_blank');
-      } catch {
-        preOpenedPopup = null;
+  if (!likelyNegative && gestureCopyPromise) {
+    void gestureCopyPromise.then((copiedOk) => {
+      if (copiedOk) {
+        const initialGoogleUrl = byId<HTMLAnchorElement>('google-link').href;
+        try {
+          preOpenedPopup = window.open(initialGoogleUrl, '_blank');
+        } catch {
+          preOpenedPopup = null;
+        }
       }
-    }
-  });
+    });
+  }
 
   setBusy(submitBtn, true, 'Submitting…');
   try {
@@ -372,7 +403,16 @@ form.addEventListener('submit', async (event) => {
     };
 
     const result = await api<SubmitReviewResponse>('/api/reviews/submit', { method: 'POST', body: payload });
-    const copied = await gestureCopyPromise;
+    const negative = isNegativeResult(result, ratingValue);
+    if (negative && preOpenedPopup) {
+      try {
+        preOpenedPopup.close();
+      } catch {
+        /* ignore */
+      }
+      preOpenedPopup = null;
+    }
+    const copied = !negative && gestureCopyPromise ? await gestureCopyPromise : false;
 
     const submission: ReviewSubmission = {
       rating: ratingValue,
@@ -381,7 +421,7 @@ form.addEventListener('submit', async (event) => {
       submittedAt: Date.now(),
     };
     saveSubmission(submission);
-    showSubmissionView(submission, { copied, autoLaunch: true, preOpenedPopup });
+    showSubmissionView(submission, { copied, autoLaunch: !negative, preOpenedPopup });
   } catch (err) {
     if (preOpenedPopup) {
       try {
@@ -430,7 +470,7 @@ escalationForm.addEventListener('submit', async (event) => {
       rating,
       reviewText,
       details: reviewText,
-      consent: true,
+      consent: escalationConsent.checked,
       idempotencyKey: escalationIdempotencyKey,
       website: byId<HTMLInputElement>('escalation-website').value,
     };

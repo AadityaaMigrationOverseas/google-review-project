@@ -136,7 +136,8 @@ export class ComplaintService {
       details: c.details,
       createdAt: c.created_at,
       dashboardUrl: `${this.notify.dashboardBaseUrl}/admin#/complaints/${c.id}`,
-      includeDetails: this.notify.includeDetails,
+      // The clinic inbox must always receive the review plus name, phone and email.
+      includeDetails: true,
     });
     const domain = /@([^>]+)>?$/.exec(this.notify.from)?.[1] ?? 'stellar-review-portal.local';
     return {

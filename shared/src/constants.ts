@@ -5,7 +5,7 @@ export const CLINIC = {
 } as const;
 
 /** Bump whenever consent wording on the public forms changes. */
-export const CONSENT_VERSION = '2026-10-v1';
+export const CONSENT_VERSION = '2026-11-v2';
 
 export const LIMITS = {
   reviewTextMin: 5,

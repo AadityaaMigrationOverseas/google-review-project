@@ -190,7 +190,9 @@ export function validateComplaintInput(raw: unknown): ValidationResult<Complaint
   ];
   for (const [field, message] of checks) if (message) errors[field] = message;
 
-  if (raw.consent !== true) errors.consent = 'Please confirm we may store your complaint and contact you about it.';
+  if (raw.consent !== true)
+    errors.consent =
+      'Please confirm we may use your name, phone and email to contact you, improve our care, and for marketing.';
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {

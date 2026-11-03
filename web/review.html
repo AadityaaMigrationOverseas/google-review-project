@@ -110,10 +110,10 @@
           aria-labelledby="escalation-title"
           hidden
         >
-          <h2 id="escalation-title">We want to make this right</h2>
+          <h2 id="escalation-title">Tell us how to reach you</h2>
           <p id="escalation-header" class="lede escalation__lede">
-            Thank you for your feedback. We take patient satisfaction seriously. Please leave your contact details below
-            so our clinic director/doctor can personally reach out and resolve your concern.
+            Thank you for your feedback. Please leave your name, phone number and email so the clinic can follow up.
+            This stays with the clinic. It is not posted on Google.
           </p>
 
           <details id="review-preview-accordion" class="accordion" open>
@@ -191,6 +191,20 @@
               <input id="escalation-website" name="website" type="text" tabindex="-1" autocomplete="off" />
             </div>
 
+            <div class="check">
+              <input
+                id="escalation-consent"
+                name="consent"
+                type="checkbox"
+                aria-describedby="escalation-consent-error"
+              />
+              <label for="escalation-consent">
+                I agree that Stellar Dental Clinic may use my name, phone number and email to contact me, to improve
+                care, and for marketing.
+              </label>
+              <p class="field__error" id="escalation-consent-error" data-error-for="consent"></p>
+            </div>
+
             <div id="escalation-alert" role="alert" hidden></div>
 
             <button type="submit" class="btn btn--primary btn--block" id="escalation-submit-btn">
@@ -201,16 +215,7 @@
 
           <div class="escalation__footer">
             <p class="fine-print">
-              Prefer to also share your review publicly?
-              <a
-                id="escalation-google-link"
-                href="https://search.google.com/local/writereview?placeid=ChIJfXYa4oPPXzkRD1P8S7a9swU"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Post on Google Reviews
-              </a>
-              or <a id="complaint-link" href="/complaint">open the full resolution form</a>.
+              Your review and contact details are sent only to the clinic. Nothing is posted on Google from this step.
             </p>
           </div>
         </section>

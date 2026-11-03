@@ -49,7 +49,7 @@ export function renderComplaintNotification(d: ComplaintNotificationData): Rende
   const when = new Date(d.createdAt).toUTCString();
   const ratingText = `${d.rating}/5 (${RATING_LABELS[d.rating] ?? ''})`;
   // Subject carries no patient identifiers: it is visible in lock screens and mail logs.
-  const subject = `New patient complaint ${d.reference} – rating ${d.rating}/5`;
+  const subject = `Negative review ${d.reference} – ${d.rating}/5 stars`;
 
   const rows: Array<[string, string]> = [
     ['Reference', d.reference],
@@ -61,10 +61,10 @@ export function renderComplaintNotification(d: ComplaintNotificationData): Rende
   }
 
   const text = [
-    `A patient submitted a private complaint via the ${CLINIC.name} review portal.`,
+    `A patient left a negative review on the ${CLINIC.name} portal and shared their contact details.`,
     '',
     ...rows.map(([k, v]) => `${k}: ${v}`),
-    ...(d.includeDetails ? ['', 'Details:', d.details] : []),
+    ...(d.includeDetails ? ['', 'Review:', d.details] : []),
     '',
     `Open in dashboard: ${d.dashboardUrl}`,
   ].join('\n');
@@ -76,7 +76,7 @@ export function renderComplaintNotification(d: ComplaintNotificationData): Rende
     )
     .join('');
   const detailsHtml = d.includeDetails
-    ? `<h2 style="font-size:15px;margin:20px 0 8px">Complaint details</h2>
+    ? `<h2 style="font-size:15px;margin:20px 0 8px">Patient review</h2>
        <div style="white-space:pre-wrap;background:#f6fafa;border-radius:10px;padding:14px;border:1px solid #e3eeee">${escapeHtml(d.details)}</div>`
     : '<p style="color:#5b7473">Contact details and the full complaint are available in the dashboard.</p>';
 

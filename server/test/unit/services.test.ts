@@ -226,7 +226,7 @@ describe('email templates', () => {
     expect(html).not.toContain('<img src=x');
     expect(html).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; more');
     expect(text).toContain('<script>'); // plain text part is not HTML
-    expect(subject).toBe('New patient complaint SDC-ABC12345 – rating 2/5');
+    expect(subject).toBe('Negative review SDC-ABC12345 – 2/5 stars');
     expect(subject).not.toContain('Patel');
   });
 

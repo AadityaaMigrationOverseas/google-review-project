@@ -104,43 +104,32 @@ test.describe('patient review page', () => {
     await expect(page.locator('#proceed-google-btn')).toHaveAttribute('href', GOOGLE_REVIEW_URL);
   });
 
-  test('every patient — even a 1-star review — is shown the Google option with equal prominence, with the private complaint form offered as an extra choice', async ({
-    page,
-    context,
-  }) => {
+  test('a negative review stays on the contact form and does not open Google', async ({ page, context }) => {
     const text = 'Waited over an hour and the receptionist was rude. Very disappointing.';
     await page.goto('/review');
     await fillReview(page, 1, text);
 
-    // Google is offered to every patient: the review box opens on submit regardless of rating/sentiment.
-    const popupPromise = context.waitForEvent('page');
+    let openedGoogle = false;
+    context.on('page', () => {
+      openedGoogle = true;
+    });
     await page.locator('#submit-btn').click();
-    const popup = await popupPromise;
-    await popup.waitForLoadState();
-    expect(popup.url()).toBe(GOOGLE_REVIEW_URL);
-    await popup.close();
 
-    // No auto-steering to the complaint form: the Google success view shows with equal prominence.
     expect(new URL(page.url()).pathname).toBe('/review');
-    await expect(page.locator('#success-view')).toBeVisible();
-    await expect(page.locator('#next-google')).toBeVisible();
-    await expect(page.locator('#next-google')).not.toHaveClass(/next-step--secondary/);
-    await expect(page.locator('#escalation-view')).toBeHidden();
-    await expect(page.locator('#your-text')).toHaveText(text);
-
-    // The private complaint form is offered as an extra choice; opening it reveals the prefilled in-place form.
-    await expect(page.locator('#open-complaint')).toBeVisible();
-    await page.locator('#open-complaint').click();
     await expect(page.locator('#escalation-view')).toBeVisible();
     await expect(page.locator('#success-view')).toBeHidden();
+    expect(openedGoogle).toBe(false);
     await expect(page.locator('#escalation-rating')).toContainText('1 of 5 stars');
     await expect(page.locator('#escalation-review-text')).toHaveValue(text);
     await expect(page.locator('#escalation-review-text')).toHaveAttribute('readonly', '');
 
-    // Fill and submit the internal escalation form without leaving the page.
     await page.locator('#full-name').fill('Asha Patel');
     await page.locator('#escalation-phone').fill('+91 98765 43210');
     await page.locator('#escalation-email').fill('asha.patel@example.com');
+    await page.locator('#escalation-submit-btn').click();
+    await expect(page.locator('#escalation-consent-error')).toContainText('confirm');
+
+    await page.locator('#escalation-consent').check();
     await page.locator('#escalation-submit-btn').click();
 
     expect(new URL(page.url()).pathname).toBe('/review');

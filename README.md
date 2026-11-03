@@ -4,7 +4,7 @@ A patient feedback portal for **Stellar Dental Clinic** and **Dr. Dhruvi Shah**:
 
 - **Patients** open a short link (WhatsApp / SMS / QR), rate 1–5 stars, write a review, and are then _offered_ the
   clinic's Google review page as an optional next step. Anyone with a problem can report it privately.
-- **The clinic** gets every private complaint emailed to `dhruvi@stellardentalclinic.com`, plus a staff dashboard
+- **The clinic** gets every private complaint emailed to `aaditya@migrationoverseas.com` (test inbox), plus a staff dashboard
   for reviews, sentiment analytics, complaints, short links / QR codes, and staff accounts.
 - **Sentiment** is computed server-side by the supplied C++ DistilBERT engine (`UpdatedUltra-low-latency.cpp`), kept
   warm in a process pool (p50 ≈ 19 ms per review on an Intel i7).
@@ -54,7 +54,7 @@ Browser (vanilla TS, ~11 KB gz)          Node 24 · Fastify 5                   
                                        └───────────────┬──────────────────┘         └──────────────────────┘
                                                        │ SMTP (outbox, retries)
                                                        ▼
-                                           dhruvi@stellardentalclinic.com
+                                           aaditya@migrationoverseas.com
 ```
 
 | Concern      | Decision                                                                                       |

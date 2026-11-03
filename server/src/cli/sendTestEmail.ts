@@ -29,7 +29,7 @@ async function main(): Promise<void> {
         '  SMTP_USER=...',
         '  SMTP_PASSWORD=...',
         '  EMAIL_FROM="Stellar Review Portal <no-reply@your-domain>"',
-        '  COMPLAINT_NOTIFY_TO=dhruvi@stellardentalclinic.com',
+        '  COMPLAINT_NOTIFY_TO=aaditya@migrationoverseas.com',
         'The sending domain must be authorised (SPF + DKIM) for EMAIL_FROM.',
       ].join('\n'),
     );

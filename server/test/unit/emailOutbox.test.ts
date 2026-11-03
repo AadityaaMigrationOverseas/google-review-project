@@ -9,7 +9,7 @@ import { PermanentEmailError, type EmailMessage, type EmailTransport } from '../
 import { FakeClock } from '../helpers.js';
 
 const message = (key: string): EmailMessage => ({
-  to: 'dhruvi@stellardentalclinic.com',
+  to: 'aaditya@migrationoverseas.com',
   from: 'portal@clinic.test',
   subject: 'New complaint',
   text: 't',

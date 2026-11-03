@@ -364,7 +364,7 @@ describe('complaints and email notifications', () => {
     await t.c.outbox.kick();
     expect(t.mail.sent).toHaveLength(1);
     const mail = t.mail.sent[0]!;
-    expect(mail.to).toBe('dhruvi@stellardentalclinic.com');
+    expect(mail.to).toBe('aaditya@migrationoverseas.com');
     expect(mail.subject).toContain(reference);
     expect(mail.text).toContain('asha.patel@example.com');
     expect(mail.text).toContain('+919876543210');

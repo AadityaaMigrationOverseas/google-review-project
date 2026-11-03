@@ -268,7 +268,7 @@ describe('configuration', () => {
     });
     expect(c.session.cookieSecure).toBe(true);
     expect(c.session.cookieName).toBe('__Host-sdc_session');
-    expect(c.email.complaintNotifyTo).toBe('dhruvi@stellardentalclinic.com');
+    expect(c.email.complaintNotifyTo).toBe('aaditya@migrationoverseas.com');
     expect(c.googleReviewUrl).toBe('https://search.google.com/local/writereview?placeid=ChIJfXYa4oPPXzkRD1P8S7a9swU');
     expect(c.allowedOrigins).toEqual(['https://reviews.stellardentalclinic.com', 'https://stlr.link']);
   });

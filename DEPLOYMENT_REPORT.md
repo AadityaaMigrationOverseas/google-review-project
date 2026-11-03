@@ -142,7 +142,7 @@ To complete for real:
 1. Put provider credentials in `/etc/stellar-portal/env` (chmod 600), never in git.
 2. `EMAIL_TRANSPORT=smtp`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`.
 3. `EMAIL_FROM` must be a mailbox the provider is allowed to send (SPF/DKIM).
-4. `COMPLAINT_NOTIFY_TO=dhruvi@stellardentalclinic.com`.
+4. `COMPLAINT_NOTIFY_TO=aaditya@migrationoverseas.com`.
 5. `npm run build:app && npm run email:verify && npm run email:test`.
 6. Open the clinic inbox, save a screenshot of From / To / Subject / time / body (no passwords).
 7. Read `Authentication-Results` on that message (`spf=pass`, `dkim=pass`).
@@ -171,7 +171,7 @@ If `EMAIL_FROM` is sent through Gmail, Microsoft 365, or Zoho SMTP, the current 
 ## 9. Unresolved issues / manual actions
 
 1. Install Docker on the VPS (or this Mac) and run `docker compose up -d --build`; keep `deploy/docker-build.log` from that machine.
-2. Provide SMTP credentials and authorization to mail `dhruvi@stellardentalclinic.com`; run `npm run email:test`; capture a real inbox screenshot.
+2. Provide SMTP credentials and authorization to mail `aaditya@migrationoverseas.com`; run `npm run email:test`; capture a real inbox screenshot.
 3. Confirm Authentication-Results on that test (`spf=pass dkim=pass`) for the chosen `EMAIL_FROM`.
 4. Generate `APP_SECRET` (≥ 32 chars) and a production `https` `APP_BASE_URL`; never commit them.
 5. Place model files on the VPS (`distilbert-sst2.onnx`, `vocab.txt`) and mount them read-only.

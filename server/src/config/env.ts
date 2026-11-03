@@ -260,7 +260,7 @@ export function loadConfig(env: Env = process.env): AppConfig {
     email: {
       transport,
       from: r.email('EMAIL_FROM', smtpRequired ? undefined : 'Stellar Review Portal <no-reply@localhost.test>'),
-      complaintNotifyTo: r.email('COMPLAINT_NOTIFY_TO', 'dhruvi@stellardentalclinic.com'),
+      complaintNotifyTo: r.email('COMPLAINT_NOTIFY_TO', 'aaditya@migrationoverseas.com'),
       includeDetails: r.bool('EMAIL_INCLUDE_DETAILS', true),
       maxAttempts: r.int('EMAIL_MAX_ATTEMPTS', 6, 1, 20),
       pollIntervalMs: r.int('EMAIL_POLL_INTERVAL_SECONDS', 30, 1, 3600) * 1000,

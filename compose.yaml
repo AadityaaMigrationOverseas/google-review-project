@@ -1,0 +1,50 @@
+# Production-shaped Compose file for a Linux VPS (Bluehost VPS / Cloud / dedicated).
+# Bluehost *shared* hosting cannot run this stack (no Docker, no long-lived Node,
+# no C++ ONNX workers, no durable SQLite volume).
+#
+# The app must sit behind Caddy (see deploy/Caddyfile) on the same host.
+# TRUST_PROXY=loopback matches that topology so rate limits use the real client IP.
+#
+# Usage:
+#   docker compose up -d --build
+# Model files must exist at ./sentiment-engine/models/{distilbert-sst2.onnx,vocab.txt}
+
+services:
+  portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: stellar-portal:local
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3000:3000'
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3000'
+      DATABASE_PATH: /data/portal.sqlite
+      STATIC_DIR: web/dist
+      TRUST_PROXY: loopback
+      SENTIMENT_BINARY: /app/sentiment-engine/build/sentiment_server
+      SENTIMENT_MODEL_PATH: /app/sentiment-engine/models/distilbert-sst2.onnx
+      SENTIMENT_VOCAB_PATH: /app/sentiment-engine/models/vocab.txt
+    volumes:
+      - portal-data:/data
+      - ./sentiment-engine/models:/app/sentiment-engine/models:ro
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:'+process.env.PORT+'/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 3s
+      start_period: 40s
+      retries: 3
+
+volumes:
+  portal-data:

@@ -85,15 +85,16 @@ web/               Vite pages (review, complaint, privacy, admin, 404, link-inva
 sentiment-engine/  vendor/ (original .cpp, unmodified), src/sentiment_server.cpp (wrapper), Makefile
 e2e/               Playwright specs (desktop + Pixel 7) and test server bootstrap
 deploy/            Caddyfile, systemd unit
+compose.yaml       Docker Compose for a Linux VPS (Caddy on the host, TRUST_PROXY=loopback)
 ```
 
 ### Data flow
 
-1. **Review**: `GET /api/public/form-token` (signed, single-use, minimum fill time) → `POST /api/public/reviews`
-   → validated → C++ sentiment (≤ `SENTIMENT_TIMEOUT_MS`) → stored → `{ id, googleReviewUrl, sentiment, next }`.
+1. **Review**: `GET /api/public/form-token` → `POST /api/reviews/submit` (the review page) or `POST /api/public/reviews`
+   (legacy) → validated → C++ sentiment (≤ `SENTIMENT_TIMEOUT_MS`) → stored → `{ id, googleReviewUrl, sentiment, next: "google" }`.
    If the engine is unavailable the review is still stored as `pending` and re-analysed by a background loop.
-2. **Complaint**: `POST /api/public/complaints` (idempotency key) → complaint row + outbox row in one transaction →
-   reference `SDC-XXXXXXXX` returned → outbox worker emails the clinic.
+2. **Complaint**: `POST /api/complaints/submit` (in-page escalation) or `POST /api/public/complaints` (standalone page)
+   → complaint row + outbox row in one transaction → reference `SDC-XXXXXXXX` returned → outbox worker emails the clinic.
 3. **Short link**: `GET /r/:code` → active link serves the review page (click counted, review attributed);
    unknown/disabled/expired → friendly 404 with a link to the general review page. No open redirects.
 
@@ -153,6 +154,9 @@ Development with hot reload: `npm run dev` (API on :3000 via tsx, Vite on :5173 
 | `npm start`               | Run the production server (reads `.env` if present)                  |
 | `npm run db:migrate`      | Apply migrations (also automatic on boot)                            |
 | `npm run admin:create`    | Create a staff account (hidden password prompt, or `STAFF_PASSWORD`) |
+| `npm run email:verify`    | Verify SMTP credentials (`EMAIL_TRANSPORT=smtp` required)            |
+| `npm run email:test`      | Send one authorized test message to `COMPLAINT_NOTIFY_TO`            |
+| `npm run vercel-build`    | Optional Vercel static build; set `BACKEND_ORIGIN` to proxy `/api`   |
 | `npm run retention:purge` | Run the retention purge once (also runs daily in-process)            |
 | `npm run check`           | Prettier check + ESLint + typecheck + unit/integration tests         |
 | `npm run test:e2e`        | Playwright E2E against the production build (run `build` first)      |
@@ -222,7 +226,7 @@ spoofable, which would otherwise collapse every patient onto the proxy's IP for 
 
 | Suite                | What it covers                                                                                                                                                                                                                                                                                                                                                                                                                                    | Result                                          |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Unit (Vitest)        | Validation, routing rule, 4-way sentiment mapping + engine-output validation, Google destination (deep link, host allow-list), process pool (hangs, crashes, garbage, overload), outbox, rate limiter, form tokens, RBAC, passwords, templates, config                                                                                                                                                                                            | 110 passing (with integration)                  |
+| Unit (Vitest)        | Validation, routing rule, 4-way sentiment mapping + engine-output validation, Google destination (deep link, host allow-list), process pool (hangs, crashes, garbage, overload), outbox, rate limiter, form tokens, RBAC, passwords, templates, config                                                                                                                                                                                            | 115 passing (with integration)                  |
 | Integration (Vitest) | Real C++ engine (positive / negative / low-confidence / unicode / 512-token), full HTTP API, review + complaint idempotency, uncertain verdicts, CSRF, RBAC, PII masking, email, short links, headers, proxy IPs                                                                                                                                                                                                                                  | (included above)                                |
 | E2E (Playwright)     | Positive flow (exact text preserved on screen, copy to clipboard, explicit Google tap, back-from-Google restore, patient pastes manually), decline, clipboard-denied fallback, popup-blocked fallback, every patient (even 1-star) sees Google with the private complaint form offered as an extra choice, validation, keyboard stars, invalid link, admin login, link → review attribution, sign-out, no horizontal overflow (desktop + Pixel 7) | 29 passing, 1 skipped (keyboard test on mobile) |
 
@@ -230,27 +234,72 @@ spoofable, which would otherwise collapse every patient onto the proxy's IP for 
 
 ## Deployment
 
-**Docker** (requires the model files on the host):
+**Recommended production topology: Docker (or systemd) + Caddy on a Linux VPS.** One HTTPS origin serves the Vite pages and the API. This matches `connect-src 'self'`, session cookies, and CSRF.
+
+This backend **cannot** run on Vercel serverless or Bluehost **shared** hosting. It is a long-lived Node 24 process with:
+
+- a SQLite file (`DATABASE_PATH`) and WAL files that need durable writable disk
+- a pool of C++ DistilBERT workers (~560 MB RSS each) loading ONNX from disk
+- in-process timers (email outbox, sentiment retry, retention)
+- in-memory rate-limit buckets and form-token replay protection
+
+**Bluehost:** use a **VPS / Cloud / dedicated** plan with Docker or Node 24 + a C++17 toolchain. Shared hosting (Apache/PHP only) is not compatible.
+
+### Docker (VPS)
+
+Model files must be present at `sentiment-engine/models/distilbert-sst2.onnx` and `vocab.txt` (not in git; see `sentiment-engine/models/README.md`). Production secrets live in `.env` or `/etc/stellar-portal/env` (never in the image).
 
 ```bash
+# Production-shaped Compose: binds 127.0.0.1:3000, TRUST_PROXY=loopback, SQLite volume
+docker compose up -d --build
+
+# Equivalent manual commands
 docker build -t stellar-portal .
-docker run -d --name stellar-portal -p 127.0.0.1:3000:3000 \
+docker run -d --name stellar-portal --restart unless-stopped -p 127.0.0.1:3000:3000 \
   --env-file /etc/stellar-portal/env \
+  -e NODE_ENV=production -e HOST=0.0.0.0 -e TRUST_PROXY=loopback \
+  -e DATABASE_PATH=/data/portal.sqlite \
   -v stellar-data:/data \
   -v /srv/models:/app/sentiment-engine/models:ro \
   stellar-portal
 ```
 
-**VM / bare metal**: build on the target OS/arch (the engine links ONNX Runtime by absolute rpath), copy to
-`/opt/stellar-portal`, set `DATABASE_PATH=/var/lib/stellar-portal/portal.sqlite`, install
-`deploy/stellar-portal.service`, and front it with `deploy/Caddyfile` (automatic HTTPS) using
-`TRUST_PROXY=loopback`.
+Front the published port with `deploy/Caddyfile` (`TRUST_PROXY=loopback` on the app). Point DNS A/AAAA for `reviews.stellardentalclinic.com` at the VPS; Caddy issues HTTPS automatically.
+
+### systemd (VM / bare metal)
+
+Build on the target OS/arch (the engine links ONNX Runtime by absolute rpath), copy to `/opt/stellar-portal`, set `DATABASE_PATH=/var/lib/stellar-portal/portal.sqlite` (must stay under the unit's `ReadWritePaths`), install `deploy/stellar-portal.service`, and front it with `deploy/Caddyfile`.
+
+### Optional Vercel static frontend
+
+Use this only if the API already runs on the VPS. The browser still calls `/api/*` on the Vercel hostname; rewrites proxy to the backend so cookies stay first-party.
+
+1. In the Vercel project: Framework = Vite, Root Directory = `web` **or** Build Command = `npm run vercel-build` from the repo root.
+2. Set `BACKEND_ORIGIN` to the public **https** origin of the Docker/Caddy API (no trailing slash), e.g. `https://reviews.stellardentalclinic.com`.
+3. `scripts/generate-vercel-config.mjs` writes `web/vercel.json` (MPA routes plus `/api` and `/healthz` proxies). Do not leave `YOUR_BACKEND_URL` in the file.
+4. Set the backend `APP_BASE_URL` (and `SHORT_LINK_BASE_URL` if used) to the URL patients actually open. If that URL is the Vercel host, also set `ALLOWED_ORIGINS` to it.
+
+Monolith on Caddy remains the supported path. A split deploy without the rewrite proxy will fail: the server rejects cross-origin POSTs and CSP is `connect-src 'self'`.
+
+### SMTP
+
+Production requires `EMAIL_TRANSPORT=smtp`, `SMTP_HOST`, and `EMAIL_FROM`. Boot calls `transporter.verify()` and **exits** if the connection fails.
+
+```bash
+npm run build:app
+npm run email:verify    # TCP/auth check, no message sent
+npm run email:test      # sends one message with no patient data to COMPLAINT_NOTIFY_TO
+```
+
+Publish SPF and DKIM for the domain in `EMAIL_FROM` before going live. Confirm the received test in the clinic mailbox (Authentication-Results: `spf=pass` `dkim=pass`).
 
 Checklist:
 
-- [ ] HTTPS domain, `APP_BASE_URL`, `APP_SECRET` from a secret store
-- [ ] SMTP credentials + SPF/DKIM; send a test complaint and confirm receipt
-- [ ] `TRUST_PROXY` set to the proxy address
+- [ ] Linux VPS (not Bluehost shared hosting); Docker or Node 24 + C++17
+- [ ] HTTPS domain, `APP_BASE_URL`, `APP_SECRET` (≥ 32 chars) from a secret store
+- [ ] SMTP credentials + SPF/DKIM; `npm run email:verify` and `npm run email:test`
+- [ ] `TRUST_PROXY=loopback` when Caddy is on the same host
+- [ ] Model files mounted; `GET /healthz` shows `db: true`
 - [ ] First admin created with `npm run admin:create`
 - [ ] Back up the SQLite file (e.g. `sqlite3 portal.sqlite ".backup ..."` nightly; WAL-safe)
 - [ ] Decide `RETENTION_REVIEWS_DAYS` / `RETENTION_COMPLAINTS_DAYS` with the clinic's records policy
@@ -265,6 +314,8 @@ Checklist:
 | Complaint emails `failed`                    | Dashboard shows the SMTP error; fix credentials/TLS, then **Retry** on the complaint |
 | "Too many requests" for everyone             | `TRUST_PROXY` missing or wrong behind a proxy                                        |
 | Staff cookie not set on http://              | Expected in production (`Secure`); use HTTPS, or `COOKIE_SECURE=false` locally only  |
+| Process exits at boot: smtp verification     | Fill `SMTP_*` and `EMAIL_FROM`; run `npm run email:verify`                           |
+| Bluehost shared hosting 500 / no Node        | Move to a VPS and run Docker or systemd; shared hosting cannot run this stack        |
 
 ## Known limitations
 
@@ -273,4 +324,4 @@ Checklist:
 - **Single node**: SQLite and the in-memory rate limiter assume one server process. Scale-out needs a shared store
   (e.g. Postgres + Redis) behind the existing repository / limiter interfaces.
 - **Memory**: each sentiment worker holds the model (~560 MB RSS measured; the Node server ~80 MB); size `SENTIMENT_WORKERS` accordingly.
-- The Dockerfile is provided but was not built in the development environment (Docker unavailable there).
+- **Containers**: this development Mac has Node 24 but no Docker Engine (`docker: command not found`). Build the image on the VPS (or any machine with Docker) using the commands above; see `deploy/docker-build.log` for the local attempt.

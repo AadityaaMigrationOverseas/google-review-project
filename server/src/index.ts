@@ -2,6 +2,20 @@ import { ConfigError, loadConfig } from './config/env.js';
 import { createContainer } from './container.js';
 import { buildApp } from './http/app.js';
 import { createLogger } from './lib/createLogger.js';
+import type { Logger } from './lib/logger.js';
+import type { EmailTransport } from './services/email/types.js';
+
+async function verifySmtp(transport: EmailTransport | null, production: boolean, logger: Logger) {
+  if (!transport?.verify) return;
+  try {
+    await transport.verify();
+    logger.info('smtp connection verified');
+  } catch (err) {
+    logger.error({ err }, 'smtp verification failed');
+    if (production) throw err;
+    logger.warn('continuing without a verified smtp connection (non-production)');
+  }
+}
 
 async function main(): Promise<void> {
   let config;
@@ -19,6 +33,7 @@ async function main(): Promise<void> {
   if (!process.env.APP_SECRET) logger.warn('APP_SECRET not set; using an ephemeral secret (development only)');
 
   const container = createContainer(config, logger);
+  await verifySmtp(container.emailTransport, config.env === 'production', logger);
   const app = await buildApp(container, logger);
   container.start();
 

@@ -22,3 +22,8 @@ sentiment-engine/models/*
 test-results/
 playwright-report/
 .playwright/
+
+# Local session scratch (never product docs)
+*_log.txt
+*OutputLogs.txt
+sentiment-engine-report.md

@@ -44,6 +44,7 @@ export interface Container {
   stats: StatsService;
   retention: RetentionService;
   outbox: EmailOutbox;
+  emailTransport: EmailTransport | null;
   audit: AuditRepository;
   analyzer: SentimentAnalyzer | null;
   /** Starts background work (engine processes, email delivery, retry loops). */
@@ -174,6 +175,7 @@ export function createContainer(config: AppConfig, logger: Logger, overrides: Co
     stats: new StatsService(reviewRepo, complaintRepo, outboxRepo, sentiment, clock),
     retention,
     outbox,
+    emailTransport: transport,
     audit,
     analyzer,
     start() {

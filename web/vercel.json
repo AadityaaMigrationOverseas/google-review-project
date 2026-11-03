@@ -1,16 +1,28 @@
 {
   "rewrites": [
     {
-      "source": "/api/:match*",
-      "destination": "https://YOUR_BACKEND_URL/api/:match*"
+      "source": "/",
+      "destination": "/review.html"
     },
     {
-      "source": "/r/:match*",
-      "destination": "https://YOUR_BACKEND_URL/r/:match*"
+      "source": "/review",
+      "destination": "/review.html"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/complaint",
+      "destination": "/complaint.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/r/:code",
+      "destination": "/review.html"
     }
   ]
 }

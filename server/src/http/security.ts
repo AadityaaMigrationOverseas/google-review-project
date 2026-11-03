@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { AppConfig } from '../config/env.js';
-import { AppError, forbidden, tooManyRequests } from '../lib/errors.js';
+import { forbidden, tooManyRequests } from '../lib/errors.js';
 import { hashIp } from '../lib/crypto.js';
 import type { RateLimiter, RateRule } from '../services/security/rateLimiter.js';
 
@@ -69,8 +69,4 @@ export function enforceRateLimit(limiter: RateLimiter, reply: FastifyReply, key:
     reply.header('Retry-After', String(decision.retryAfterSec));
     throw tooManyRequests(decision.retryAfterSec);
   }
-}
-
-export function isAppError(err: unknown): err is AppError {
-  return err instanceof AppError;
 }

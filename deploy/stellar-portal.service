@@ -1,5 +1,9 @@
 # systemd unit for a bare-metal/VM deployment at /opt/stellar-portal.
 # Secrets live in /etc/stellar-portal/env (chmod 600, owned by root).
+# DATABASE_PATH in that file MUST be under ReadWritePaths, e.g.
+#   DATABASE_PATH=/var/lib/stellar-portal/portal.sqlite
+#   TRUST_PROXY=loopback
+#   NODE_ENV=production
 [Unit]
 Description=Stellar Dental Clinic review portal
 After=network-online.target
